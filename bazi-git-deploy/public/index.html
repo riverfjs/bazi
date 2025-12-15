@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>八字排盘计算器</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -130,6 +131,23 @@
             background: #3498db;
         }
 
+        .btn-fortune {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-fortune:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+        }
+
+        .btn-fortune:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .result {
             margin-top: 30px;
             padding: 20px;
@@ -141,6 +159,75 @@
         .result.show {
             display: block;
             animation: slideIn 0.3s ease-out;
+        }
+
+        .fortune-chart-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .fortune-chart-container.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .fortune-chart-title {
+            text-align: center;
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        #fortuneChart {
+            width: 100%;
+            height: 600px;
+            min-height: 600px;
+        }
+
+        .fortune-legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .fortune-legend h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .fortune-legend p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .fortune-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .fortune-controls label {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 0;
+        }
+
+        .fortune-controls select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
         }
 
         @keyframes slideIn {
@@ -330,6 +417,106 @@
                 <div class="result-value" id="qiYunDate"></div>
             </div>
             <button type="button" class="btn-copy" id="copyBtn">📋 复制结果</button>
+            <button type="button" class="btn-fortune" id="fortuneBtn">📈 查看百年运势K线图</button>
+        </div>
+
+        <div class="fortune-chart-container" id="fortuneChartContainer">
+            <h2 class="fortune-chart-title">📊 百年运势K线图</h2>
+            <div class="fortune-controls">
+                <label for="chartRange">显示范围:</label>
+                <select id="chartRange">
+                    <option value="20">前20年</option>
+                    <option value="30">前30年</option>
+                    <option value="50">前50年</option>
+                    <option value="100" selected>全部100年</option>
+                </select>
+<button type="button" class="btn-reset" id="refreshChart">刷新图表</button>
+            </div>
+            <div id="fortuneChart"></div>
+            <div class="fortune-legend">
+                <h4>📖 K线图说明</h4>
+                <p><strong>红色K线(阳线):</strong> 年末运势 > 年初运势,整体运势上扬</p>
+                <p><strong>绿色K线(阴线):</strong> 年末运势 < 年初运势,整体运势下降</p>
+                <p><strong>上影线:</strong> 该年可达到的最高运势</p>
+                <p><strong>下影线:</strong> 该年可能遇到的最低运势</p>
+                <p><strong>紫色曲线:</strong> 综合评分趋势线,反映整体运势走向</p>
+                <p><strong>灰色虚线:</strong> 平均线(50分),高于平均线为顺,低于平均线为逆</p>
+                
+                <h4 style="margin-top: 20px;">🔮 运势计算算法详解</h4>
+                
+                <div style="background: #fff; padding: 15px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #667eea;">
+                    <p style="font-weight: 600; color: #667eea; margin-bottom: 10px;">算法权重分配（总计100%）：</p>
+                    
+                    <p style="margin: 5px 0;"><strong>1. 大运影响 (35%)</strong></p>
+                    <p style="margin-left: 20px; font-size: 13px; color: #666;">
+                        • 大运天干对日主生克 (25%) - 十年大运主导整体走势<br>
+                        • 大运地支对日主生克 (20%) - 地支力量持久深远<br>
+                        • 未起运期影响减半
+                    </p>
+                    
+                    <p style="margin: 5px 0;"><strong>2. 流年影响 (25%)</strong></p>
+                    <p style="margin-left: 20px; font-size: 13px; color: #666;">
+                        • 流年天干对日主生克 (15%) - 当年太岁主事<br>
+                        • 流年地支对日主生克 (12%) - 当年地气影响<br>
+                        • 流年决定该年具体吉凶
+                    </p>
+                    
+                    <p style="margin: 5px 0;"><strong>3. 大运流年互动 (12%)</strong></p>
+                    <p style="margin-left: 20px; font-size: 13px; color: #666;">
+                        • 天干相合(如甲己合): +7分 吉<br>
+                        • 地支相合(如子丑合): +5分 吉<br>
+                        • 天干相冲(阴阳同性克): -7分 凶<br>
+                        • 地支相冲(如子午冲): -9分 大凶
+                    </p>
+                    
+                    <p style="margin: 5px 0;"><strong>4. 神煞影响 (20%)</strong></p>
+                    <p style="margin-left: 20px; font-size: 13px; color: #666;">
+                        • 大运神煞 (10%): 天乙贵人+12、文昌+8、羊刃-8等<br>
+                        • 流年神煞 (10%): 禄神+8、劫煞-7、桃花+3等<br>
+                        • 吉神制凶、贵人化险为夷
+                    </p>
+                    
+                    <p style="margin: 5px 0;"><strong>5. 其他因素 (8%)</strong></p>
+                    <p style="margin-left: 20px; font-size: 13px; color: #666;">
+                        • 流年与日柱关系 (8%): 冲日支-6、合日支+4<br>
+                        • 五行平衡度 (5%): 补弱五行为吉、过旺为凶<br>
+                        • 年龄生命周期 (3%): 30-40岁高峰期+10<br>
+                        • 换大运交接期 (特殊): 运势波动-4
+                    </p>
+                </div>
+                
+                <div style="background: #fffaf0; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #ff9800;">
+                    <p style="font-weight: 600; color: #ff9800; margin-bottom: 10px;">📊 五行生克评分规则：</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 被生（受生扶）: <span style="color: #2ed573;">+12分 ★★★</span> 如水命遇金年(金生水)</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 克他人（我克财）: <span style="color: #2ed573;">+8分 ★★</span> 如水命遇火年(水克火得财)</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 同类比和: <span style="color: #ffd93d;">+6分 ★</span> 如水命遇水年(帮身)</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 生他人（泄气）: <span style="color: #ffa502;">+5分</span> 如水命遇木年(水生木泄身)</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 被克（受官杀克）: <span style="color: #ff4757;">-10分 ✗✗✗</span> 如水命遇土年(土克水)</p>
+                </div>
+                
+                <div style="background: #f0f9ff; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #3498db;">
+                    <p style="font-weight: 600; color: #3498db; margin-bottom: 10px;">💡 运势等级划分：</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 70分以上: <strong style="color: #2ed573;">大吉</strong> - 贵人相助,诸事顺遂</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 60-70分: <strong style="color: #7bed9f;">较吉</strong> - 运势上升,利于发展</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 50-60分: <strong style="color: #ffd93d;">平稳</strong> - 平平稳稳,无大起大落</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 40-50分: <strong style="color: #ff6348;">较差</strong> - 多有波折,需谨慎行事</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 40分以下: <strong style="color: #ff4757;">低谷</strong> - 运势低迷,宜守不宜攻</p>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #95a5a6;">
+                    <p style="font-weight: 600; color: #2c3e50; margin-bottom: 10px;">🎯 实战应用建议：</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 运势高峰期(70+): 适合创业、投资、求职、考试、婚嫁等重大事项</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 运势平稳期(50-70): 适合稳步发展、学习充电、维护关系</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 运势低谷期(40-): 宜守不宜攻、韬光养晦、等待时机</p>
+                    <p style="margin: 3px 0; font-size: 13px;">• 换大运之年: 运势波动大,谨慎决策,以不变应万变</p>
+                </div>
+                
+                <p style="color: #e74c3c; margin-top: 15px; font-weight: 600; font-size: 14px;">
+                    <strong>⚠️ 重要提醒:</strong> 
+                    此运势图基于传统命理学计算,仅供参考娱乐。人的命运受多种因素影响,包括个人努力、教育背景、社会环境、机遇选择等。
+                    运势不是宿命,积极进取才是改变命运的根本！
+                </p>
+            </div>
         </div>
     </div>
 
@@ -339,8 +526,15 @@
         const error = document.getElementById('error');
         const result = document.getElementById('result');
         const copyBtn = document.getElementById('copyBtn');
+        const fortuneBtn = document.getElementById('fortuneBtn');
+        const fortuneChartContainer = document.getElementById('fortuneChartContainer');
+        const chartRange = document.getElementById('chartRange');
+        const refreshChart = document.getElementById('refreshChart');
         
         let currentResultData = null;
+        let currentBaziRequest = null;
+        let fortuneData = null;
+        let fortuneChart = null;
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -382,6 +576,14 @@
             loading.classList.add('show');
             error.classList.remove('show');
             result.classList.remove('show');
+            
+            // 【修复】重新计算时隐藏运势K线图
+            fortuneChartContainer.classList.remove('show');
+            fortuneData = null; // 清空运势数据
+            if (fortuneChart) {
+                fortuneChart.dispose();
+                fortuneChart = null;
+            }
 
             try {
                 const response = await fetch('/api/bazi', {
@@ -402,6 +604,9 @@
                         ...data.data
                     };
                     
+                    // 保存当前请求参数用于运势计算
+                    currentBaziRequest = formData;
+                    
                     // 显示性别和出生地
                     document.getElementById('sexDisplay').textContent = sex === 1 ? '男' : '女';
                     document.getElementById('birthplaceDisplay').textContent = birthplace;
@@ -414,6 +619,9 @@
                     document.getElementById('qiYunDate').textContent = data.data.qiYunDate;
 
                     result.classList.add('show');
+                    
+                    // 启用运势按钮
+                    fortuneBtn.disabled = false;
                 } else {
                     showError(data.error || '计算失败，请检查输入');
                 }
@@ -478,7 +686,463 @@ ${currentResultData.qiYunDate}
             error.textContent = message;
             error.classList.add('show');
         }
+
+        // 运势按钮点击事件
+        fortuneBtn.addEventListener('click', async () => {
+            if (!currentBaziRequest) {
+                showError('请先计算八字');
+                return;
+            }
+
+            // 如果已经有数据且图表容器已显示,直接滚动到图表位置
+            if (fortuneData && fortuneChartContainer.classList.contains('show')) {
+                fortuneChartContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
+            loading.classList.add('show');
+            error.classList.remove('show');
+            fortuneBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/bazi/fortune', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(currentBaziRequest),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    fortuneData = data.data;
+                    renderFortuneChart(fortuneData);
+                    fortuneChartContainer.classList.add('show');
+                    
+                    // 滚动到图表位置
+                    setTimeout(() => {
+                        fortuneChartContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                } else {
+                    showError(data.error || '运势计算失败');
+                }
+            } catch (err) {
+                showError('网络错误: ' + err.message);
+            } finally {
+                loading.classList.remove('show');
+                fortuneBtn.disabled = false;
+            }
+        });
+
+        // 渲染运势K线图
+        function renderFortuneChart(data) {
+            // 如果图表已存在,先销毁
+            if (fortuneChart) {
+                fortuneChart.dispose();
+                fortuneChart = null;
+            }
+
+            // 获取显示范围
+            const range = parseInt(chartRange.value);
+            const displayData = data.slice(0, range);
+
+            // 准备数据
+            const years = displayData.map(item => item.year);
+            const klineData = displayData.map(item => [item.open, item.close, item.low, item.high]);
+            const scoreData = displayData.map(item => item.score);
+            
+            // 计算平均分
+            const averageScore = scoreData.reduce((sum, score) => sum + score, 0) / scoreData.length;
+
+            // 初始化图表（延迟初始化确保DOM已准备好）
+            setTimeout(() => {
+                const chartDom = document.getElementById('fortuneChart');
+                fortuneChart = echarts.init(chartDom, null, {
+                    renderer: 'canvas',
+                    useDirtyRect: false
+                });
+
+                // 配置项 - 更现代的样式
+                const option = {
+                    animation: true,
+                    animationDuration: 800,
+                    animationEasing: 'cubicOut',
+                    backgroundColor: '#fafafa',
+                    title: {
+                        text: '命理运势K线走势图',
+                        subtext: `出生年份: ${currentBaziRequest.year}年 | 显示范围: ${range} 年`,
+                        left: 'center',
+                        top: 15,
+                        textStyle: {
+                            color: '#2c3e50',
+                            fontSize: 20,
+                            fontWeight: '600'
+                        },
+                        subtextStyle: {
+                            color: '#7f8c8d',
+                            fontSize: 13
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross',
+                            crossStyle: {
+                                color: '#667eea'
+                            },
+                            lineStyle: {
+                                color: '#667eea',
+                                type: 'dashed'
+                            }
+                        },
+                        backgroundColor: 'rgba(50, 50, 50, 0.95)',
+                        borderColor: '#667eea',
+                        borderWidth: 2,
+                        textStyle: {
+                            color: '#fff',
+                            fontSize: 13
+                        },
+                        padding: 15,
+                        formatter: function(params) {
+                            if (!params || params.length === 0) return '';
+                            
+                            // 获取dataIndex，确保从正确的数据源读取
+                            const dataIndex = params[0].dataIndex;
+                            const itemData = displayData[dataIndex];
+                            
+                            const year = itemData.year;
+                            const age = year - currentBaziRequest.year;
+                            
+                            let result = `<div style="padding: 5px;">
+                                <div style="font-weight: bold; margin-bottom: 10px; font-size: 15px; color: #fff; border-bottom: 2px solid #667eea; padding-bottom: 5px;">
+                                    📅 ${year}年 (${age}岁)
+                                </div>`;
+                            
+                            // 显示K线数据
+                            const open = itemData.open;
+                            const close = itemData.close;
+                            const high = itemData.high;
+                            const low = itemData.low;
+                            const score = itemData.score;
+                            
+                            const isRise = close >= open;
+                            const color = isRise ? '#ff4757' : '#2ed573';
+                            const icon = isRise ? '📈' : '📉';
+                            const trend = isRise ? '上涨' : '下降';
+                            
+                            result += `
+                                <div style="margin: 8px 0; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 4px;">
+                                    <div style="color: ${color}; font-weight: bold; margin-bottom: 5px;">
+                                        ${icon} 运势${trend}
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin: 3px 0;">
+                                        <span>年初:</span><span style="color: #ffd93d;">${open.toFixed(2)}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin: 3px 0;">
+                                        <span>年末:</span><span style="color: #ffd93d;">${close.toFixed(2)}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin: 3px 0;">
+                                        <span>最高:</span><span style="color: #ff6b81;">${high.toFixed(2)}</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin: 3px 0;">
+                                        <span>最低:</span><span style="color: #70a1ff;">${low.toFixed(2)}</span>
+                                    </div>
+                                </div>`;
+                            
+                            // 显示综合评分
+                            let level = '平稳';
+                            let levelColor = '#ffd93d';
+                            if (score >= 70) {
+                                level = '大吉';
+                                levelColor = '#2ed573';
+                            } else if (score >= 60) {
+                                level = '较吉';
+                                levelColor = '#7bed9f';
+                            } else if (score >= 50) {
+                                level = '平稳';
+                                levelColor = '#ffd93d';
+                            } else if (score >= 40) {
+                                level = '较差';
+                                levelColor = '#ff6348';
+                            } else {
+                                level = '低谷';
+                                levelColor = '#ff4757';
+                            }
+                            
+                            result += `
+                                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #667eea;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>⭐ 综合评分:</span>
+                                        <span style="color: ${levelColor}; font-weight: bold; font-size: 16px;">${score.toFixed(2)}</span>
+                                    </div>
+                                    <div style="text-align: right; margin-top: 3px; color: ${levelColor};">
+                                        ${level}
+                                    </div>
+                                </div>`;
+                            
+                            result += `</div>`;
+                            return result;
+                        }
+                    },
+                    legend: {
+                        data: ['运势K线', '综合评分'],
+                        top: 60,
+                        textStyle: {
+                            color: '#34495e',
+                            fontSize: 13
+                        },
+                        itemGap: 20
+                    },
+                    grid: {
+                        left: '50',
+                        right: '50',
+                        bottom: '80',
+                        top: 120,
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: years,
+                        boundaryGap: true,
+                        axisLine: {
+                            lineStyle: {
+                                color: '#95a5a6',
+                                width: 2
+                            }
+                        },
+                        axisTick: {
+                            show: true,
+                            lineStyle: {
+                                color: '#bdc3c7'
+                            }
+                        },
+                        splitLine: {
+                            show: true,
+                            lineStyle: {
+                                color: '#ecf0f1',
+                                type: 'dashed'
+                            }
+                        },
+                        axisLabel: {
+                            interval: 'auto',
+                            rotate: range > 50 ? 45 : 0,
+                            color: '#34495e',
+                            fontSize: 11,
+                            formatter: function(value) {
+                                return value;
+                            }
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        min: 0,
+                        max: 100,
+                        interval: 10,
+                        axisLine: {
+                            show: true,
+                            lineStyle: {
+                                color: '#95a5a6',
+                                width: 2
+                            }
+                        },
+                        axisTick: {
+                            show: true,
+                            lineStyle: {
+                                color: '#bdc3c7'
+                            }
+                        },
+                        splitLine: {
+                            lineStyle: {
+                                color: '#ecf0f1',
+                                type: 'dashed'
+                            }
+                        },
+                        axisLabel: {
+                            color: '#34495e',
+                            fontSize: 12,
+                            formatter: '{value}'
+                        },
+                        splitArea: {
+                            show: true,
+                            areaStyle: {
+                                color: ['rgba(255, 255, 255, 0.3)', 'rgba(240, 240, 240, 0.3)']
+                            }
+                        }
+                    },
+                    dataZoom: [
+                        {
+                            type: 'inside',
+                            start: 0,
+                            end: 100,
+                            zoomOnMouseWheel: true,
+                            moveOnMouseMove: true,
+                            moveOnMouseWheel: false
+                        },
+                        {
+                            show: true,
+                            type: 'slider',
+                            bottom: 10,
+                            start: 0,
+                            end: 100,
+                            height: 30,
+                            borderColor: '#667eea',
+                            fillerColor: 'rgba(102, 126, 234, 0.2)',
+                            handleStyle: {
+                                color: '#667eea',
+                                borderColor: '#667eea'
+                            },
+                            textStyle: {
+                                color: '#34495e'
+                            }
+                        }
+                    ],
+                    series: [
+                        {
+                            name: '运势K线',
+                            type: 'candlestick',
+                            data: klineData,
+                            barWidth: range > 50 ? '60%' : '70%',
+                            itemStyle: {
+                                color: '#ff4757',
+                                color0: '#2ed573',
+                                borderColor: '#ff4757',
+                                borderColor0: '#2ed573',
+                                borderWidth: 1.5
+                            },
+                            emphasis: {
+                                itemStyle: {
+                                    borderWidth: 2.5,
+                                    shadowBlur: 10,
+                                    shadowColor: 'rgba(0, 0, 0, 0.3)',
+                                    shadowOffsetX: 0,
+                                    shadowOffsetY: 5
+                                }
+                            },
+                            markLine: {
+                                silent: true,
+                                symbol: 'none',
+                                animation: false,
+                                label: {
+                                    show: true,
+                                    position: 'insideEndTop',
+                                    formatter: `平均线 (${averageScore.toFixed(2)}分)`,
+                                    color: '#2c3e50',
+                                    fontSize: 13,
+                                    fontWeight: 'bold',
+                                    backgroundColor: 'rgba(236, 240, 241, 0.9)',
+                                    padding: [6, 10],
+                                    borderRadius: 4,
+                                    borderColor: '#95a5a6',
+                                    borderWidth: 1
+                                },
+                                lineStyle: {
+                                    color: '#7f8c8d',
+                                    width: 2.5,
+                                    type: 'dashed',
+                                    dashOffset: 5
+                                },
+                                emphasis: {
+                                    disabled: true
+                                },
+                                data: [{
+                                    yAxis: averageScore,
+                                    name: '平均线'
+                                }],
+                                z: 100
+                            }
+                        },
+                        {
+                            name: '综合评分',
+                            type: 'line',
+                            data: scoreData,
+                            smooth: true,
+                            smoothMonotone: 'x',
+                            lineStyle: {
+                                color: '#667eea',
+                                width: 3,
+                                shadowColor: 'rgba(102, 126, 234, 0.3)',
+                                shadowBlur: 10
+                            },
+                            areaStyle: {
+                                color: {
+                                    type: 'linear',
+                                    x: 0,
+                                    y: 0,
+                                    x2: 0,
+                                    y2: 1,
+                                    colorStops: [
+                                        { offset: 0, color: 'rgba(102, 126, 234, 0.4)' },
+                                        { offset: 1, color: 'rgba(102, 126, 234, 0.05)' }
+                                    ]
+                                }
+                            },
+                            itemStyle: {
+                                color: '#667eea',
+                                borderColor: '#fff',
+                                borderWidth: 2
+                            },
+                            showSymbol: false,
+                            symbolSize: 6,
+                            emphasis: {
+                                focus: 'series',
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowColor: 'rgba(102, 126, 234, 0.5)'
+                                }
+                            },
+                            z: 10
+                        }
+                    ]
+                };
+
+                // 设置配置项
+                fortuneChart.setOption(option, true);
+
+                // 响应式
+                const resizeHandler = () => {
+                    if (fortuneChart) {
+                        fortuneChart.resize();
+                    }
+                };
+                
+                window.removeEventListener('resize', resizeHandler);
+                window.addEventListener('resize', resizeHandler);
+            }, 100);
+        }
+
+        // 图表范围改变事件
+        chartRange.addEventListener('change', () => {
+            if (fortuneData) {
+                renderFortuneChart(fortuneData);
+            }
+        });
+
+        // 刷新图表按钮
+        refreshChart.addEventListener('click', () => {
+            if (fortuneData) {
+                renderFortuneChart(fortuneData);
+            }
+        });
+
+        // 表单重置时清空运势数据
+        form.addEventListener('reset', () => {
+            currentResultData = null;
+            currentBaziRequest = null;
+            fortuneData = null;
+            result.classList.remove('show');
+            fortuneChartContainer.classList.remove('show');
+            error.classList.remove('show');
+            fortuneBtn.disabled = true;
+            
+            if (fortuneChart) {
+                fortuneChart.dispose();
+                fortuneChart = null;
+            }
+        });
     </script>
 </body>
 </html>
+
+
 
