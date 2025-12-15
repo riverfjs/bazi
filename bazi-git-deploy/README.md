@@ -7,6 +7,9 @@
 - 📅 完整的公历/农历日期转换
 - 🔮 精确的四柱八字计算
 - 🌟 大运起运时间推算
+- 📈 **百年运势K线图展示（新功能）**
+- 🎯 **基于五行生克、大运流年的智能运势分析**
+- 💹 **交互式K线图表，支持缩放和数据查看**
 - 👤 支持性别和出生地信息
 - 📋 一键复制格式化结果
 - 🎨 现代化的响应式界面
@@ -96,6 +99,40 @@ flyctl deploy
 }
 ```
 
+### POST /api/bazi/fortune
+
+计算百年运势K线数据（新接口）
+
+**请求参数：** 与 `/api/bazi` 相同
+
+**响应示例：**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "year": 2000,
+      "open": 52.34,
+      "close": 54.21,
+      "high": 58.90,
+      "low": 48.12,
+      "score": 53.50
+    },
+    ...共100年数据
+  ]
+}
+```
+
+**K线数据说明：**
+- `year`: 年份
+- `open`: 年初运势
+- `close`: 年末运势
+- `high`: 该年最高运势
+- `low`: 该年最低运势
+- `score`: 综合评分（0-100）
+
+详细算法说明请查看 [FORTUNE_ALGORITHM.md](./FORTUNE_ALGORITHM.md)
+
 ## 🎨 界面预览
 
 - 简洁优雅的表单设计
@@ -143,4 +180,6 @@ flyctl deploy
 - 中国日历类（Chinese Calendar Class (CCC)）v0.1
 - 版权所有 (C) 2002-2003 neweroica (wy25@mail.bnu.edu.cn)
 - CNPACK 作者：刘啸 (liuxiao@cnpack.org)、周劲羽(zjy@cnpack.org)
+
+
 
