@@ -1,10 +1,15 @@
 # 构建阶段
-FROM golang:1.23-alpine AS builder
+FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 
 # 复制依赖文件
 COPY go.mod go.sum ./
+
+# 复制本地依赖库（因为go.mod中有replace指令）
+COPY lib ./lib
+
+# 下载其他依赖
 RUN go mod download
 
 # 复制源代码
